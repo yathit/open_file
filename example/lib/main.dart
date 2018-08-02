@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(new MyApp());
 
@@ -12,24 +15,34 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _openResult = 'Unknown';
+  String fileName;
 
   @override
   void initState() {
     super.initState();
-    openFile("/sdcard/Download/Translate.apk").then((_result){
-      setState(() {
-        _openResult = _result;
-      });
+
+    init();
+  }
+
+  init() async {
+    final dir = await getApplicationDocumentsDirectory();
+    fileName = join(dir.path, 'test.txt');
+    File file = new File(fileName);
+    await file.writeAsString("This is a test");
+    setState(() {
+      _openResult = "ready";
     });
   }
 
-  Future<String> openFile(filePath)async{
-    return await OpenFile.open(filePath);
+  Future<String> openFile() async {
+    var rs = await OpenFile.open(fileName);
+    setState(() {
+      _openResult = rs;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-
     return new MaterialApp(
       home: new Scaffold(
         appBar: new AppBar(
@@ -37,6 +50,10 @@ class _MyAppState extends State<MyApp> {
         ),
         body: new Center(
           child: new Text('open result: $_openResult\n'),
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: openFile,
+          child: new Icon(Icons.open_in_new),
         ),
       ),
     );
